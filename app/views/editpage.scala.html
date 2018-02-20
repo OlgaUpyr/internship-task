@@ -1,0 +1,42 @@
+@(id: Long)
+
+@main("Edit profile page", content, header, footer)
+
+@content = {
+    <div class="row">
+        <img id="profileImage" src="@models.S3FileDetails.getUserAvatar(id)" style="width:220px;height:220px;border-radius:110px;">
+        <form id="edit-profile-form" enctype="multipart/form-data" class="col-md-6 col-sm-6 col-xs-12 offset-md-1 offset-sm-2" action="#" data-id="@id" data-bind="submit: submitForm">
+            <div class="form-group">
+                <label class="col-form-label" for="name">Name</label>
+                <input class="form-control" type="text" id="name" name="name" data-bind="value: name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input class="form-control" type="text" id="email" name="email" data-bind="value: email">
+            </div>
+            <div>
+                <label for="file" class="btn-link">Change profile picture</label>
+                <input id="file" name="file" class="form-control" type="file" style="display: none">
+            </div>
+            <div class="form-group">
+                <label for="current_password">Current password</label>
+                <input class="form-control" type="password" id="current_password" name="current_password" data-bind="value: current_password">
+            </div>
+            <div class="form-group">
+                <label for="new_password">New password</label>
+                <input class="form-control" type="password" id="new_password" name="new_password" data-bind="value: new_password">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm password</label>
+                <input class="form-control" type="password" id="confirm_password" name="confirm_password" data-bind="value: confirm_password">
+            </div>
+            <button id="ajaxCallUpload" class="btn btn-block btn-info" type="submit">Change profile</button>
+        </form>
+    </div>
+}
+
+@header = {}
+
+@footer = {
+    <script src="@routes.Assets.versioned("javascripts/viewmodels/edit-profile-form.js")" type="text/javascript"></script>
+}

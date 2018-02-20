@@ -1,0 +1,25 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /home                       controllers.HomeController.home
+GET     /login                      controllers.LoginController.loginPage
+GET     /registration               controllers.RegistrationController.registrationPage
+GET     /profile/edit               controllers.ProfileController.editProfile
+GET     /checkemail                 controllers.ForgotPasswordController.checkEmailPage
+POST    /sendemail                  controllers.ForgotPasswordController.sendEmail
+GET     /reset/:token               controllers.ForgotPasswordController.forgotPasswordPage(token: String)
+POST    /reset/:token               controllers.ForgotPasswordController.changePassword(token: String)
+GET     /logout                     controllers.LoginController.logout
+
+
+
+POST    /api/login                  controllers.LoginController.login
+POST    /api/registration           controllers.RegistrationController.register
+GET     /api/users                  controllers.HomeController.allUsers
+GET     /api/profile                controllers.ProfileController.profileInfo
+POST    /api/profile/edit/:id       controllers.ProfileController.updateUserInfo(id: Long)
+
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

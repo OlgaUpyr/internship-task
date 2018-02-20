@@ -1,0 +1,31 @@
+@()
+
+@main("Login page", content, header, footer)
+
+    @content = {
+        <div class="row">
+            <form id="login-form" class="col-md-4 col-sm-6 col-xs-12 offset-md-4 offset-sm-3" action="#" data-bind="submit: submitForm">
+                <div class="form-group">
+                    <label class="col-form-label" for="email">Email</label>
+                    <input class="form-control" type="text" id="email" name="email" data-bind="value: email">
+                </div>
+                <div class="form-group">
+                    <label class="col-form-label" for="password">Password</label>
+                    <input class="form-control" type="password" id="password" name="password" data-bind="value: password">
+                </div>
+                <button type="submit" class="btn btn-block btn-info">Login</button>
+                <div class="text-center">Not registered?
+                    <a role="button" href="@routes.RegistrationController.registrationPage">Create an account</a>
+                </div>
+                <div class="text-center">
+                    <a class="text-center" role="button" href="@routes.ForgotPasswordController.checkEmailPage">Forgot password?</a>
+                </div>
+            </form>
+        </div>
+    }
+
+    @header = {}
+
+    @footer = {
+        <script src="@routes.Assets.versioned("javascripts/viewmodels/login-form.js")" type="text/javascript"></script>
+    }
