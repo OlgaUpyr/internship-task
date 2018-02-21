@@ -35,9 +35,8 @@ class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDA
               PasswordUtils.encryptPassword(userData.newPassword, salt), salt)
             request.body.file("file").map {
               case FilePart(key, filename, contentType, file) =>
-                Console.println("ooooooooooooooooouuuuuuuuuuuuuu")
                 if(file.length() > 0) {
-                  //ImageMagickUtils.resizeImage(filename, 200)
+                  ImageMagickUtils.resizeImage(filename, 200)
                   S3FileDetails.changeUserAvatar(id.get, file)
                 }
             }

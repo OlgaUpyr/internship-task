@@ -16,7 +16,7 @@ user.edit_page_form = {
         });
 
         self.submitForm = function (form) {
-            var formData = new FormData($("#edit-profile-form")[0])
+            var formData = new FormData($("#edit-profile-form")[0]);
             $.ajax({
                 url: "/api/profile/edit/" + id,
                 type: 'POST',
@@ -29,7 +29,7 @@ user.edit_page_form = {
                     user.errorUtils.setErrorsToForm($(form), JSON.parse(jqXHR.responseText));
                 }
             }).done(function () {
-                //window.location.replace("/home");
+                window.location.replace("/home");
             });
         }
     }

@@ -19,7 +19,7 @@ trait UserDAO {
   def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Unit
 }
 
-class UserDAOImpl @Inject() (@NamedDatabase("default") db: Database) extends UserDAO {
+class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends UserDAO {
   val table = "users"
 
   override def findById(id: Long): Option[User] = {

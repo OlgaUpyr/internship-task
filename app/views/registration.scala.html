@@ -4,9 +4,9 @@
 
     @content = {
         <div class="row">
-            <form action="#" enctype="multipart/form-data" class="col-md-4 col-sm-6 col-xs-12 offset-md-4 offset-sm-3" id="registration-form" data-bind="submit: submitForm">
+            <form id="registration-form" action="#" enctype="multipart/form-data" class="col-md-4 col-sm-6 col-xs-12 offset-md-4 offset-sm-3" data-bind="submit: submitForm">
                 <div class="text-center">
-                    <img src="@routes.Assets.versioned("images/user-default.png")" style="width:300px;height:300px;border-radius:150px;">
+                    <img id="profileImage" src="@routes.Assets.versioned("images/user-default.png")" style="width:300px;height:300px;border-radius:150px;overflow: hidden;">
                 </div>
                 <div class="text-center">
                     <label for="file" class="btn-link">Change profile picture</label>

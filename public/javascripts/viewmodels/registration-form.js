@@ -9,7 +9,7 @@ user.registration_form = {
         self.confirm_password = ko.observable("");
 
         self.submitForm = function (form) {
-            var formData = new FormData($("#registration-form")[0])
+            var formData = new FormData($("#registration-form")[0]);
             $.ajax({
                 url: "/api/registration",
                 type: 'POST',
@@ -27,6 +27,19 @@ user.registration_form = {
         }
     }
 };
+
+function readUrl(input) {
+    if(input.files && input.files[0]){
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            $('#profileImage').attr('src', ev.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+$("#file").change(function () {
+    readUrl(this);
+});
 
 $(function() {
     var model = document.getElementById("registration-form");
