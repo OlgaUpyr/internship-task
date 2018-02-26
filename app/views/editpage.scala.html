@@ -1,10 +1,10 @@
-@(id: Long)
+@(id: Long, userDAO: UserDAO)
 
 @main("Edit profile page", content, header, footer)
 
 @content = {
     <div class="row">
-        <img id="profileImage" src="@models.S3FileDetails.getUserAvatar(id)" style="width:220px;height:220px;border-radius:110px;">
+        <img id="profileImage" src="@userDAO.getUserAvatar(id)" style="width:220px;height:220px;border-radius:110px;">
         <form id="edit-profile-form" enctype="multipart/form-data" class="col-md-6 col-sm-6 col-xs-12 offset-md-1 offset-sm-2" action="#" data-id="@id" data-bind="submit: submitForm">
             <div class="form-group">
                 <label class="col-form-label" for="name">Name</label>

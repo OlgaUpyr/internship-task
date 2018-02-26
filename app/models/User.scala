@@ -7,7 +7,8 @@ import play.api.libs.json._
 import utils.ValidationUtils
 
 case class User(id: Option[Long], name: String, email: String, currentPassword: Option[String], newPassword: String,
-                confirmPassword: String, salt: Option[String], controlKey: Option[String], expirationTime: Option[DateTime])
+                confirmPassword: String, salt: Option[String], controlKey: Option[String], expirationTime: Option[DateTime],
+                avatarUrl: Option[String])
 
 object User {
 
@@ -23,7 +24,7 @@ object User {
     }
 
     def reads(json: JsValue): JsResult[User] = {
-      JsSuccess(User(null, "", "", null, "", "", null, null, null))
+      JsSuccess(User(null, "", "", null, "", "", null, null, null, null))
     }
   }
 }
@@ -35,7 +36,7 @@ object UserForm {
       "email" -> nonEmptyText.verifying(ValidationUtils.email),
       "new_password" -> nonEmptyText.verifying(ValidationUtils.password),
       "confirm_password" -> nonEmptyText.verifying(ValidationUtils.password)
-    )((a, b, c, d) => User(None, a, b, None, c, d, None, None, None))
+    )((a, b, c, d) => User(None, a, b, None, c, d, None, None, None, None))
     (u => Some(u.name, u.email, u.newPassword, u.confirmPassword))
       verifying("Passwords don't match", password => password.newPassword == password.confirmPassword)
   )
@@ -47,7 +48,7 @@ object UserForm {
       "current_password" -> text.verifying(ValidationUtils.password),
       "new_password" -> text.verifying(ValidationUtils.password),
       "confirm_password" -> text.verifying(ValidationUtils.password)
-    )((a, b, c, d, e) => User(None, a, b, Some(c), d, e, None, None, None))
+    )((a, b, c, d, e) => User(None, a, b, Some(c), d, e, None, None, None, None))
     (u => Some(u.name, u.email,u.currentPassword.get, u.newPassword, u.confirmPassword))
       verifying("Passwords don't match", password => password.newPassword == password.confirmPassword)
   )

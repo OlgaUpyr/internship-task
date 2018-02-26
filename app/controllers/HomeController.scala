@@ -14,7 +14,7 @@ class HomeController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
     request.session.get("user").map { user =>
       Ok(views.html.userslist())
     }.getOrElse {
-      Ok(views.html.login())
+      Unauthorized
     }
   }
 
@@ -22,7 +22,7 @@ class HomeController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
     request.session.get("user").map { user =>
       Ok(Json.toJson(userDAO.getAllUsers))
     }.getOrElse {
-      Ok(views.html.login())
+      Unauthorized
     }
   }
 }

@@ -1,5 +1,8 @@
 package controllers
 
+import java.io.File
+import java.nio.file.{Files, Paths}
+import java.util.UUID
 import javax.inject._
 
 import models._
@@ -10,13 +13,13 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
+class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDAO, passwordUtils: PasswordUtils)
                                       (implicit ec: ExecutionContext)
   extends AbstractController(cc) with play.api.i18n.I18nSupport {
 
   def registrationPage() = Action { implicit request =>
     request.session.get("user").map { user =>
-      Ok(views.html.userslist())
+      Redirect(routes.HomeController.home())
     }.getOrElse {
       Ok(views.html.registration())
     }
@@ -29,21 +32,24 @@ class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDA
       },
       userData => {
         userDAO.findByEmail(userData.email) match {
-          case None =>
-            val salt = PasswordUtils.generateRandomString(128)
-            val id = userDAO.create(userData.name, userData.email,
-              PasswordUtils.encryptPassword(userData.newPassword, salt), salt)
-            request.body.file("file").map {
-              case FilePart(key, filename, contentType, file) =>
-                if(file.length() > 0) {
-                  ImageMagickUtils.resizeImage(filename, 200)
-                  S3FileDetails.changeUserAvatar(id.get, file)
-                }
-            }
-            Ok.withSession("user" -> id.get.toString)
           case Some(user) =>
             BadRequest(UserForm.userForm.withError("email",
               "The email address you have entered is already registered.").errorsAsJson)
+          case None =>
+            val salt = passwordUtils.generateRandomString()
+            val id = userDAO.create(userData.name, userData.email, passwordUtils.encryptPassword(userData.newPassword, salt), salt)
+            request.body.file("file").map {
+              case FilePart(key, filename, contentType, file) =>
+                val outputImage = "C:/internship-task/"+ id +".jpg"
+                if(file.length() > 0 && S3FileDetails.isImage(contentType.get)) {
+                  val newFile = new File(outputImage)
+                  newFile.createNewFile()
+                  ImageMagickUtils.resizeImage(file.toPath.toString, 200, outputImage)
+                  S3FileDetails.changeUserAvatar(UUID.randomUUID().toString, newFile)
+                  Files.deleteIfExists(Paths.get(outputImage))
+                }
+            }
+            Ok.withSession("user" -> id.get.toString)
         }
       }
     )

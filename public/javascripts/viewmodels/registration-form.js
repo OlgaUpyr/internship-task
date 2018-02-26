@@ -13,8 +13,6 @@ user.registration_form = {
             $.ajax({
                 url: "/api/registration",
                 type: 'POST',
-                headers: { 'IsAjax': 'true' },
-                dataType: 'json',
                 processData: false,
                 contentType: false,
                 data: formData,
@@ -22,7 +20,7 @@ user.registration_form = {
                     user.errorUtils.setErrorsToForm($(form), JSON.parse(jqXHR.responseText));
                 }
             }).done(function () {
-                window.location.replace("/home");
+                window.location.replace("/registration");
             });
         }
     }

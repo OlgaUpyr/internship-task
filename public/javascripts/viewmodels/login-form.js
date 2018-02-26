@@ -20,7 +20,7 @@ user.login_form = {
                     user.errorUtils.setErrorsToForm($(form), JSON.parse(jqXHR.responseText));
                 }
             }).done(function () {
-                window.location.replace("/home");
+                window.location.replace("/login");
             });
         }
     }

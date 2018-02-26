@@ -3,15 +3,13 @@ package utils
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-import models.User
-
 import java.util.Random
 
-object PasswordUtils {
-  def generateRandomString(length: Int): String = {
+class PasswordUtils() {
+  def generateRandomString(): String = {
     val sb = new StringBuffer()
     val r = new Random()
-    for (i <- 1 to length)
+    for (i <- 1 to 128)
       sb.append((r.nextInt(25) + 65).toChar)
     sb.toString
   }
@@ -47,10 +45,10 @@ object PasswordUtils {
     toHex(bytes)
   }
 
-  def passwordsMatch(password: String, user: User): Boolean = {
+  def passwordsMatch(password: String, salt: String, newPassword: String): Boolean = {
     isPasswordsEquals(
-      user.newPassword,
-      encryptPassword(password, user.salt.get)
+      newPassword,
+      encryptPassword(password, salt)
     )
   }
 }

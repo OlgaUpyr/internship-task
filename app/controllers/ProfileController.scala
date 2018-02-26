@@ -1,5 +1,9 @@
 package controllers
 
+import java.io.File
+import java.nio.file.{Files, Paths}
+import java.util.UUID
+
 import models.{S3FileDetails, UserDAO, UserForm}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -12,14 +16,15 @@ import scala.concurrent.ExecutionContext
 
 
 @Singleton
-class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
+class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, passwordUtils: PasswordUtils)
                                  (implicit ec: ExecutionContext)
   extends AbstractController(cc) with play.api.i18n.I18nSupport {
   def editProfile() = Action { implicit request =>
     request.session.get("user").map { user =>
-      Ok(views.html.editpage(user.toLong))
+      Console.println(userDAO.getUserAvatar(user.toLong))
+      Ok(views.html.editpage(user.toLong, userDAO))
     }.getOrElse {
-      Ok(views.html.login())
+      Redirect(routes.LoginController.loginPage())
     }
   }
 
@@ -31,25 +36,40 @@ class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
       userData => {
         request.body.file("file").map {
           case FilePart(key, filename, contentType, file) =>
-            if(file.length() > 0) {
-              val filePath = file.toPath
-              ImageMagickUtils.resizeImage(filePath.toString, 200)
-              S3FileDetails.changeUserAvatar(id, filePath.toFile)
+            if(file.length() > 0 && S3FileDetails.isImage(contentType.get)) {
+              val avatarUrl = UUID.randomUUID().toString
+              val outputImage = "C:/internship-task/"+ avatarUrl +".jpg"
+              val newFile = new File(outputImage)
+              newFile.createNewFile()
+              ImageMagickUtils.resizeImage(file.toPath.toString, 200, outputImage)
+              S3FileDetails.changeUserAvatar(avatarUrl, newFile)
+              userDAO.changeAvatarUrl(id, avatarUrl)
+              Files.deleteIfExists(Paths.get(outputImage))
             }
         }
-        if(userData.currentPassword.get == "" || userData.newPassword == "" || userData.confirmPassword == ""){
-          userDAO.editProfile(id, userData.name, userData.email)
-        } else {
-          var user = userDAO.findById(id).get
-          if(PasswordUtils.passwordsMatch(userData.currentPassword.get, user)){
-            userDAO.editProfileWithPassword(id, userData.name, userData.email,
-              PasswordUtils.encryptPassword(userData.newPassword, user.salt.get))
+        val currentUser = userDAO.findById(id).get
+        if(userDAO.isEmailExist(currentUser.email, userData.email)) {
+          BadRequest(UserForm.editUserForm.withError("email",
+            "The email address you have entered is already registered.").errorsAsJson)
+        }
+        else {
+          if(userData.currentPassword.get == "" && userData.newPassword == "" && userData.confirmPassword == ""){
+            userDAO.editProfile(id, userData.name, userData.email)
+            Ok(Json.toJson(userData))
+          } else if (userData.currentPassword.get != "" && userData.newPassword != "" && userData.confirmPassword != "") {
+            var user = userDAO.findById(id).get
+            if(passwordUtils.passwordsMatch(userData.currentPassword.get, user.salt.get, user.newPassword)){
+              userDAO.editProfileWithPassword(id, userData.name, userData.email,
+                passwordUtils.encryptPassword(userData.newPassword, user.salt.get))
+              Ok(Json.toJson(userData))
+            } else {
+              BadRequest(UserForm.editUserForm.withError("current_password",
+                "The password you have entered does not match your current one.").errorsAsJson)
+            }
           } else {
-            BadRequest(UserForm.editUserForm.withError("current_password",
-              "The password you have entered does not match your current one.").errorsAsJson)
+            BadRequest(UserForm.editUserForm.withError("", "Missing fields.").errorsAsJson)
           }
         }
-        Ok(Json.toJson(userData))
       }
     )
   }
@@ -58,7 +78,7 @@ class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO)
     request.session.get("user").map { user =>
       Ok(Json.toJson(userDAO.findById(user.toLong)))
     }.getOrElse {
-      Ok(views.html.login())
+      Unauthorized
     }
   }
 }

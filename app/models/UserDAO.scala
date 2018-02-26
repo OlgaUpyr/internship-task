@@ -5,22 +5,35 @@ import javax.inject.Inject
 import play.api.db._
 import anorm.SqlParser._
 import anorm._
+import controllers.routes
 import org.joda.time.DateTime
 
 trait UserDAO {
+  def getUserAvatar(id: Long): String
   def findById(id: Long): Option[User]
   def findByEmail(email: String): Option[User]
   def findByControlKey(controlKey: String, currentTime: DateTime): Option[User]
   def create(name: String, email: String, password: String, salt: String): Option[Long]
   def getAllUsers: Seq[User]
-  def editProfileWithPassword(id: Long, name: String, email: String, password: String): Unit
-  def editProfile(id: Long, name: String, email: String): Unit
-  def changePassword(id: Long, password: String): Unit
-  def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Unit
+  def editProfileWithPassword(id: Long, name: String, email: String, password: String): Boolean
+  def editProfile(id: Long, name: String, email: String): Boolean
+  def changePassword(id: Long, password: String): Boolean
+  def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Boolean
+  def isEmailExist(currentEmail: String, newEmail: String): Boolean
+  def changeAvatarUrl(id: Long, avatarUrl: String): Boolean
 }
 
 class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends UserDAO {
   val table = "users"
+
+  override def getUserAvatar(id: Long): String = {
+    val avatarUrl = db.withConnection { implicit connection =>
+      val query = s"SELECT * FROM $table WHERE id=$id"
+      SQL(query).as(UserParser.single).avatarUrl
+    }
+    if(avatarUrl != None) "https://s3.amazonaws.com/" + S3FileDetails.bucket + "/" + avatarUrl.get
+    else routes.Assets.versioned("images/user-default.png").toString
+  }
 
   override def findById(id: Long): Option[User] = {
     db.withConnection { implicit connection =>
@@ -58,7 +71,7 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
-  override def editProfileWithPassword(id: Long, name: String, email: String, password: String): Unit = {
+  override def editProfileWithPassword(id: Long, name: String, email: String, password: String): Boolean = {
     db.withConnection { implicit connection =>
       val query = s"UPDATE $table SET name='$name', email='$email', " +
         s"password='$password' WHERE id=$id"
@@ -66,23 +79,34 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
-  override def editProfile(id: Long, name: String, email: String): Unit = {
+  override def editProfile(id: Long, name: String, email: String): Boolean = {
     db.withConnection { implicit connection =>
       val query = s"UPDATE $table SET name='$name', email='$email' WHERE id=$id"
       SQL(query).execute()
     }
   }
 
-  override def changePassword(id: Long, password: String): Unit = {
+  override def changePassword(id: Long, password: String): Boolean = {
     db.withConnection { implicit connection =>
       val query = s"UPDATE $table SET password='$password' WHERE id=$id"
       SQL(query).execute()
     }
   }
 
-  override def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Unit = {
+  override def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Boolean = {
     db.withConnection { implicit connection =>
       val query = s"UPDATE $table SET controlKey='$controlKey', expirationTime='$expirationTime' WHERE email='$email'"
+      SQL(query).execute()
+    }
+  }
+
+  override def isEmailExist(currentEmail: String, newEmail: String): Boolean = {
+    currentEmail != newEmail && findByEmail(newEmail).isDefined
+  }
+
+  override def changeAvatarUrl(id: Long, avatarUrl: String): Boolean = {
+    db.withConnection { implicit connection =>
+      val query = s"UPDATE $table SET avatarUrl='$avatarUrl' WHERE id=$id"
       SQL(query).execute()
     }
   }
@@ -97,6 +121,8 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     salt <- get[Option[String]]("salt")
     controlKey <- get[Option[String]]("controlKey")
     expirationTime <- get[Option[DateTime]]("expirationTime")
+    avatarUrl <- get[Option[String]]("avatarUrl")
   } yield User(id, name.getOrElse(""), email.getOrElse(""), current_password,
-    new_password.getOrElse(""), confirm_password.getOrElse(""), salt, controlKey, expirationTime)
+    new_password.getOrElse(""), confirm_password.getOrElse(""), salt, controlKey,
+    expirationTime, avatarUrl)
 }

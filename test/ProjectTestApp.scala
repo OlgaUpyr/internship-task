@@ -1,27 +1,34 @@
-import play.api.{Application, Play}
+import TestUtils._
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.test._
 import org.scalatest._
 
-trait ProjectTestApp extends SuiteMixin {
-  this: Suite =>
+trait ProjectTestApp extends TestSuiteMixin {
+  this: TestSuite =>
 
-  // to replace any bindings, just override this in your test, e.g. like so
-  // override def overrideModules = Seq(bind[Hello].to[GermanHello])
+  val defaultConf = Map(
+    "db.postgres.url" -> testDatabaseUrl,
+    "db.postgres.username" -> testDatabaseUsername,
+    "db.postgres.password" -> testDatabasePassword
+  )
+
   def overrideModules: Seq[GuiceableModule] = Nil
 
   def newAppForTest(testData: TestData): Application =
     new GuiceApplicationBuilder()
+      .configure(defaultConf)
       .overrides(overrideModules: _*)
       .build
 
   private var appPerTest: Application = _
   implicit final def app: Application = synchronized { appPerTest }
 
-  abstract override def withFixture(test: NoArgTest) = {
+  abstract override def withFixture(test: NoArgTest): Outcome = {
     synchronized { appPerTest = newAppForTest(test) }
-    Helpers.running(app) { super.withFixture(test) }
+    Helpers.running(app) {
+      super.withFixture(test)
+    }
   }
 }
