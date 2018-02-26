@@ -40,7 +40,7 @@ class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDA
             val id = userDAO.create(userData.name, userData.email, passwordUtils.encryptPassword(userData.newPassword, salt), salt)
             request.body.file("file").map {
               case FilePart(key, filename, contentType, file) =>
-                val outputImage = "C:/internship-task/"+ id +".jpg"
+                val outputImage = routes.Assets.versioned("images/" + id +".jpg").toString
                 if(file.length() > 0 && S3FileDetails.isImage(contentType.get)) {
                   val newFile = new File(outputImage)
                   newFile.createNewFile()
