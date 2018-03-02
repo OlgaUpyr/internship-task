@@ -5,20 +5,30 @@
 GET     /home                       controllers.HomeController.home
 GET     /login                      controllers.LoginController.loginPage
 GET     /registration               controllers.RegistrationController.registrationPage
+GET     /profile                    controllers.ProfileController.getProfileInfo
 GET     /profile/edit               controllers.ProfileController.editProfile
 GET     /checkemail                 controllers.ForgotPasswordController.checkEmailPage
 POST    /sendemail                  controllers.ForgotPasswordController.sendEmail
 GET     /reset/:token               controllers.ForgotPasswordController.forgotPasswordPage(token: String)
 POST    /reset/:token               controllers.ForgotPasswordController.changePassword(token: String)
 GET     /logout                     controllers.LoginController.logout
+POST    /facebook-auth              controllers.FacebookAuthController.facebookAuth
 
 
 
 POST    /api/login                  controllers.LoginController.login
 POST    /api/registration           controllers.RegistrationController.register
 GET     /api/users                  controllers.HomeController.allUsers
+GET     /api/profile/info           controllers.ProfileController.getProfileInfo
 GET     /api/profile                controllers.ProfileController.profileInfo
 POST    /api/profile/edit/:id       controllers.ProfileController.updateUserInfo(id: Long)
+
+GET     /products                   controllers.ProductController.productsListPage
+GET     /product/detail/:id         controllers.ProductController.productDetailsPage(id: Long)
+GET     /product/add                controllers.ProductController.addProductPage
+POST    /product/add                controllers.ProductController.addProduct
+POST    /product/buy/:id            controllers.ProductController.buyProduct(id: Long)
+GET     /profile/products           controllers.ProductController.productsListForUserPage
 
 GET     /ping                       controllers.LoginController.ping
 

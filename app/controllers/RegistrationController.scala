@@ -37,15 +37,18 @@ class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDA
               "The email address you have entered is already registered.").errorsAsJson)
           case None =>
             val salt = passwordUtils.generateRandomString()
-            val id = userDAO.create(userData.name, userData.email, passwordUtils.encryptPassword(userData.newPassword, salt), salt)
+            val id = userDAO.create(userData.name, userData.email,
+              passwordUtils.encryptPassword(userData.newPassword, salt), salt, userData.role.get)
             request.body.file("file").map {
               case FilePart(key, filename, contentType, file) =>
-                val outputImage = routes.Assets.versioned("images/" + id +".jpg").toString
                 if(file.length() > 0 && S3FileDetails.isImage(contentType.get)) {
+                  val avatarUrl = UUID.randomUUID().toString
+                  val outputImage = "C:/internship-task/"+ avatarUrl +".jpg"
                   val newFile = new File(outputImage)
                   newFile.createNewFile()
                   ImageMagickUtils.resizeImage(file.toPath.toString, 200, outputImage)
-                  S3FileDetails.changeUserAvatar(UUID.randomUUID().toString, newFile)
+                  S3FileDetails.changeUserAvatar(avatarUrl, newFile)
+                  userDAO.changeAvatarUrl(id.get, avatarUrl)
                   Files.deleteIfExists(Paths.get(outputImage))
                 }
             }

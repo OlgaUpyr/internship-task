@@ -20,8 +20,6 @@ user.edit_page_form = {
             $.ajax({
                 url: "/api/profile/edit/" + id,
                 type: 'POST',
-                headers: { 'IsAjax': 'true' },
-                dataType: 'json',
                 processData: false,
                 contentType: false,
                 data: formData,

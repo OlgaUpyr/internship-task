@@ -4,7 +4,7 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 import java.util.UUID
 
-import models.{S3FileDetails, UserDAO, UserForm}
+import models.{ProductDAO, S3FileDetails, UserDAO, UserForm}
 import play.api.libs.json.Json
 import play.api.mvc._
 import utils.{FileUtils, ImageMagickUtils, PasswordUtils}
@@ -16,12 +16,11 @@ import scala.concurrent.ExecutionContext
 
 
 @Singleton
-class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, passwordUtils: PasswordUtils)
+class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, passwordUtils: PasswordUtils, productDAO: ProductDAO)
                                  (implicit ec: ExecutionContext)
   extends AbstractController(cc) with play.api.i18n.I18nSupport {
   def editProfile() = Action { implicit request =>
     request.session.get("user").map { user =>
-      Console.println(userDAO.getUserAvatar(user.toLong))
       Ok(views.html.editpage(user.toLong, userDAO))
     }.getOrElse {
       Redirect(routes.LoginController.loginPage())
@@ -72,6 +71,14 @@ class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, pa
         }
       }
     )
+  }
+
+  def getProfileInfo() = Action { implicit request =>
+    request.session.get("user").map { user =>
+      Ok(views.html.profilepage(userDAO, userDAO.findById(user.toLong).get))
+    }.getOrElse{
+      Redirect(routes.HomeController.home())
+    }
   }
 
   def profileInfo() = Action { implicit request =>

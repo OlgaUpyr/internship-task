@@ -23,6 +23,7 @@ class RegistrationControllerSpec extends PlaySpec
   private val emailCaptor = ArgumentCaptor.forClass(classOf[String])
   private val passwordCaptor = ArgumentCaptor.forClass(classOf[String])
   private val saltCaptor = ArgumentCaptor.forClass(classOf[String])
+  private val roleCaptor = ArgumentCaptor.forClass(classOf[String])
 
   override def overrideModules = Seq(
     bind[UserDAO].toInstance(userDAO),
@@ -42,7 +43,9 @@ class RegistrationControllerSpec extends PlaySpec
       when(user.email).thenReturn("olga@gmail.com")
       when(passwordUtils.encryptPassword("qazseszaq", salt)).thenReturn(hashPassword)
       when(user.salt).thenReturn(Some(salt))
-      when(userDAO.create(user.name, user.email, hashPassword, salt)).thenReturn(Some(490L))
+      when(user.role).thenReturn(Some("seller"))
+      when(userDAO.create
+      (user.name, user.email, hashPassword, salt, user.role.get)).thenReturn(Some(490L))
       when(userDAO.findById(490L)).thenReturn(Some(user))
 
       val files = Seq[FilePart[TemporaryFile]](FilePart("file", "test.png", Some("image/png"),
@@ -50,16 +53,19 @@ class RegistrationControllerSpec extends PlaySpec
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("seller"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, files, Seq[BadPart]())))
       status(result) mustBe OK
 
-      verify(userDAO, times(1)).create(nameCaptor.capture, emailCaptor.capture, passwordCaptor.capture, saltCaptor.capture)
+      verify(userDAO, times(1)).create(nameCaptor.capture, emailCaptor.capture, passwordCaptor.capture,
+        saltCaptor.capture, roleCaptor.capture)
       nameCaptor.getValue mustBe "Olga Upyr"
       emailCaptor.getValue mustBe "olga@gmail.com"
       passwordCaptor.getValue mustBe new PasswordUtils().encryptPassword("qazseszaq", saltCaptor.getValue)
       saltCaptor.getValue mustBe salt
+      roleCaptor.getValue mustBe "seller"
     }
     "successful registration without profile image" in {
       when(userDAO.findByEmail("olga@gmail.com")).thenReturn(None)
@@ -68,13 +74,15 @@ class RegistrationControllerSpec extends PlaySpec
       when(user.email).thenReturn("olga@gmail.com")
       when(passwordUtils.encryptPassword("qazseszaq", salt)).thenReturn(hashPassword)
       when(user.salt).thenReturn(Some(salt))
-      when(userDAO.create(user.name, user.email, hashPassword, salt)).thenReturn(Some(490L))
+      when(user.role).thenReturn(Some("customer"))
+      when(userDAO.create(user.name, user.email, hashPassword, salt, user.role.get)).thenReturn(Some(490L))
       when(userDAO.findById(490L)).thenReturn(Some(user))
 
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe OK
@@ -82,7 +90,8 @@ class RegistrationControllerSpec extends PlaySpec
     "failed registration because of name missing" in {
       val data = Map("email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -91,7 +100,8 @@ class RegistrationControllerSpec extends PlaySpec
     "failed registration because of email missing" in {
       val data = Map("name" -> Seq("Olga Upyr"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -100,7 +110,8 @@ class RegistrationControllerSpec extends PlaySpec
     "failed registration because of password missing" in {
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -109,7 +120,8 @@ class RegistrationControllerSpec extends PlaySpec
     "failed registration because of confirm password missing" in {
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
-        "new_password" -> Seq("qazseszaq"))
+        "new_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -119,7 +131,8 @@ class RegistrationControllerSpec extends PlaySpec
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -131,7 +144,8 @@ class RegistrationControllerSpec extends PlaySpec
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("qazseszaq"),
-        "confirm_password" -> Seq("qazseszaq"))
+        "confirm_password" -> Seq("qazseszaq"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -141,7 +155,8 @@ class RegistrationControllerSpec extends PlaySpec
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("1234"),
-        "confirm_password" -> Seq("1234"))
+        "confirm_password" -> Seq("1234"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST
@@ -152,7 +167,8 @@ class RegistrationControllerSpec extends PlaySpec
       val data = Map("name" -> Seq("Olga Upyr"),
         "email" -> Seq("olga@gmail.com"),
         "new_password" -> Seq("12345678"),
-        "confirm_password" -> Seq("87654321"))
+        "confirm_password" -> Seq("87654321"),
+        "role" -> Seq("customer"))
       val Some(result) = route(app, FakeRequest(POST, routes.RegistrationController.register().url)
         .withMultipartFormDataBody(MultipartFormData(data, Seq[FilePart[TemporaryFile]](), Seq[BadPart]())))
       status(result) mustBe BAD_REQUEST

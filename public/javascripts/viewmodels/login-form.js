@@ -5,16 +5,17 @@ user.login_form = {
         var self = this;
         self.email = ko.observable("");
         self.password = ko.observable("");
+        self.role = ko.observable("");
 
         self.submitForm = function (form) {
             $.ajax({
                 url: "/api/login",
                 type: 'POST',
-                dataType: 'text',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify({
                     email: self.email(),
-                    password: self.password()
+                    password: self.password(),
+                    role: self.role()
                 }),
                 error: function (jqXHR) {
                     user.errorUtils.setErrorsToForm($(form), JSON.parse(jqXHR.responseText));
@@ -22,7 +23,7 @@ user.login_form = {
             }).done(function () {
                 window.location.replace("/login");
             });
-        }
+        };
     }
 };
 

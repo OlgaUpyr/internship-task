@@ -3,7 +3,6 @@ package models
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
-import controllers.routes
 import utils.AmazonS3ClientWrapper
 
 object S3FileDetails {

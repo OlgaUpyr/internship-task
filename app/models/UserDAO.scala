@@ -13,14 +13,18 @@ trait UserDAO {
   def findById(id: Long): Option[User]
   def findByEmail(email: String): Option[User]
   def findByControlKey(controlKey: String, currentTime: DateTime): Option[User]
-  def create(name: String, email: String, password: String, salt: String): Option[Long]
+  def findByFBId(fbId: String): Option[User]
+  def create(name: String, email: String, password: String, salt: String, role: String): Option[Long]
+  def createFBUser(fbId: String, name: String, role: String): Option[Long]
   def getAllUsers: Seq[User]
   def editProfileWithPassword(id: Long, name: String, email: String, password: String): Boolean
   def editProfile(id: Long, name: String, email: String): Boolean
   def changePassword(id: Long, password: String): Boolean
   def setControlKey(email: String, controlKey: String, expirationTime: DateTime): Boolean
+  def setEmail(id: Long, email: String): Boolean
   def isEmailExist(currentEmail: String, newEmail: String): Boolean
   def changeAvatarUrl(id: Long, avatarUrl: String): Boolean
+  def checkRole(id: Long): String
 }
 
 class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends UserDAO {
@@ -31,7 +35,7 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
       val query = s"SELECT * FROM $table WHERE id=$id"
       SQL(query).as(UserParser.single).avatarUrl
     }
-    if(avatarUrl != None) "https://s3.amazonaws.com/" + S3FileDetails.bucket + "/" + avatarUrl.get
+    if(avatarUrl.isDefined) "https://s3.amazonaws.com/" + S3FileDetails.bucket + "/" + avatarUrl.get
     else routes.Assets.versioned("images/user-default.png").toString
   }
 
@@ -56,10 +60,25 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
-  override def create(name: String, email: String, password: String, salt: String): Option[Long] = {
+  override def findByFBId(fbId: String): Option[User] = {
     db.withConnection { implicit connection =>
-      val query = s"INSERT INTO $table(name, email, password, salt) VALUES" +
-        s"('$name', '$email', '$password', '$salt')"
+      val query = s"SELECT * FROM $table WHERE fbId='$fbId'"
+      SQL(query).as(UserParser.singleOpt)
+    }
+  }
+
+  override def createFBUser(fbId: String, name: String, role: String): Option[Long] = {
+    db.withConnection { implicit connection =>
+      val query = s"INSERT INTO $table(fbId, name, role) VALUES" +
+        s"('$fbId', '$name', '$role')"
+      SQL(query).executeInsert()
+    }
+  }
+
+  override def create(name: String, email: String, password: String, salt: String, role: String): Option[Long] = {
+    db.withConnection { implicit connection =>
+      val query = s"INSERT INTO $table(name, email, password, salt, role) VALUES" +
+        s"('$name', '$email', '$password', '$salt', '$role')"
       SQL(query).executeInsert()
     }
   }
@@ -100,6 +119,13 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
+  override def setEmail(id: Long, email: String): Boolean = {
+    db.withConnection { implicit connection =>
+      val query = s"UPDATE $table SET email='$email' WHERE id=$id"
+      SQL(query).execute()
+    }
+  }
+
   override def isEmailExist(currentEmail: String, newEmail: String): Boolean = {
     currentEmail != newEmail && findByEmail(newEmail).isDefined
   }
@@ -111,8 +137,16 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
+  override def checkRole(id: Long): String = {
+    db.withConnection { implicit connection =>
+      val query = s"SELECT * FROM $table WHERE id=$id"
+      SQL(query).as(UserParser.single).role.get
+    }
+  }
+
   private val UserParser = for {
     id <- get[Option[Long]]("id")
+    fbId <- get[Option[String]]("fbid")
     name <- get[Option[String]]("name")
     email <- get[Option[String]]("email")
     current_password <- get[Option[String]]("password")
@@ -122,7 +156,8 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     controlKey <- get[Option[String]]("controlKey")
     expirationTime <- get[Option[DateTime]]("expirationTime")
     avatarUrl <- get[Option[String]]("avatarUrl")
-  } yield User(id, name.getOrElse(""), email.getOrElse(""), current_password,
+    role <- get[Option[String]]("role")
+  } yield User(id, fbId, name.getOrElse(""), email.getOrElse(""), current_password,
     new_password.getOrElse(""), confirm_password.getOrElse(""), salt, controlKey,
-    expirationTime, avatarUrl)
+    expirationTime, avatarUrl, role)
 }

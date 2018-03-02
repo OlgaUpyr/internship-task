@@ -9,7 +9,6 @@ user.check_email_form = {
             $.ajax({
                 url: "/sendemail",
                 type: 'POST',
-                dataType: 'text',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify({
                     email: self.email()

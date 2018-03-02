@@ -4,7 +4,17 @@
 
     @content = {
         <div class="row">
-            <form id="login-form" class="col-md-4 col-sm-6 col-xs-12 offset-md-4 offset-sm-3" action="#" data-bind="submit: submitForm">
+            <form id="login-form" class="col-md-4 col-sm-6 col-xs-12 offset-md-3 offset-sm-3" action="#" data-bind="submit: submitForm">
+                <div class="form-group">
+                    <label class="control-label">User role</label>
+                    <div class="selectContainer">
+                        <select class="form-control" id="role" name="role" data-bind="value: role">
+                            <option value="">Choose a role</option>
+                            <option value="customer">Customer</option>
+                            <option value="seller">Seller</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="col-form-label" for="email">Email</label>
                     <input class="form-control" type="text" id="email" name="email" data-bind="value: email">
@@ -13,7 +23,16 @@
                     <label class="col-form-label" for="password">Password</label>
                     <input class="form-control" type="password" id="password" name="password" data-bind="value: password">
                 </div>
-                <button type="submit" class="btn btn-block btn-info">Login</button>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-info" style="width:255px;">Login</button>
+                </div>
+                <div id="fb-root"></div>
+                <script src="@routes.Assets.versioned("javascripts/viewmodels/facebook-auth.js")" type="text/javascript"></script>
+                <div class="text-center">
+                    <div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with"
+                    data-show-faces="false" data-auto-logout-link="false" data-use-continue-as="false" style="margin-top:16px;"
+                    data-scope="public_profile,email" data-onlogin="fbLogin()"></div>
+                </div>
                 <div class="text-center">Not registered?
                     <a role="button" href="@routes.RegistrationController.registrationPage">Create an account</a>
                 </div>

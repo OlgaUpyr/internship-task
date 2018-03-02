@@ -10,7 +10,6 @@ user.forgot_password_form = {
             $.ajax({
                 url: "/reset/" + token,
                 type: 'POST',
-                dataType: 'text',
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify({
                     new_password: self.new_password(),
