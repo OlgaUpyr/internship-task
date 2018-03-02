@@ -1,0 +1,40 @@
+@(productDAO: ProductDAO, products: Seq[Product], role: String)
+
+@main("Products list", content, header, footer)
+
+@content = {
+    <div class="row" id="product-detail-form">
+        @for(product : Product <- products) {
+            <div class="col-xs-12 col-md-6" style="margin-top:32px;">
+                <div class="row" id="product-detail-form" data-userId="@product.id.get">
+                    <div class="col-md-5 col-sm-12 col-xs-12">
+                        <img src="@productDAO.getProductImage(product.id.get)" class="img-responsive" style="width:160px;height:160px;">
+                    </div>
+                    <div class="col-md-7 col-sm-12 col-xs-12">
+                        <div>
+                            <h4 class="name">
+                                <a href="#">@product.name</a>
+                            </h4>
+                            <p class="price-container">
+                                <span>$@product.price</span>
+                            </p>
+                        </div>
+                        <div>
+                            <div class="row" style="margin-top:54px;">
+                                <div class="col-md-12">
+                                <a href="@routes.ProductController.productDetailsPage(product.id.get)" class="btn btn-info">More info</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@header = {}
+
+@footer = {
+    <script src="@routes.Assets.versioned("javascripts/viewmodels/add-to-cart.js")" type="text/javascript"></script>
+}

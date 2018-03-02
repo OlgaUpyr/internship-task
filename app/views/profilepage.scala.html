@@ -1,0 +1,38 @@
+@(userDAO: UserDAO, user: User)
+
+@main("Profile page", content, header, footer)
+
+@content = {
+    <div class="row offset-md-3">
+        <img id="profileImage" src="@userDAO.getUserAvatar(user.id.get)" style="width:260px;height:260px;border-radius:130px;">
+        <div style="margin-left:56px;">
+            <h1>@user.name</h1>
+            <p>@user.role</p>
+            <p>Email:
+                @if(user.email == ""){
+                    not specified
+                }else {
+                    @user.email
+                }
+            </p>
+            <div style="margin-top:45px;">
+                <a class="btn btn-info" href="@routes.ProfileController.editProfile()">Edit profile</a>
+                @if(user.role.get == "seller") {
+                    <a class="btn btn-info" href="@routes.ProductController.productsListForUserPage()">My products</a>
+                    <div class="row">
+                        <a style="margin-left:70px; margin-top:16px;" href="@routes.ProductController.addProductPage()">Add product</a>
+                    </div>
+                } else {
+                    <a class="btn btn-info" href="@routes.ProductController.productsListForUserPage()">Current orders</a>
+                    <div class="row">
+                        <a style="margin-left:32px; margin-top:16px;" href="@routes.ProductController.productsListPage()">Show available products</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@header = {}
+
+@footer = {}
