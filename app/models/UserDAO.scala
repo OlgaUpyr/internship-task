@@ -28,7 +28,7 @@ trait UserDAO {
   def setRole(id: Long, role: String): Boolean
 }
 
-class UserDAOImpl @Inject() (@NamedDatabase("default") db: Database) extends UserDAO {
+class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends UserDAO {
   val table = "users"
 
   override def getUserAvatar(id: Long): String = {
