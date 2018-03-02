@@ -19,7 +19,7 @@ trait ProductDAO {
   def changeOwner(id: Long, userId: Long): Boolean
 }
 
-class ProductDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends ProductDAO {
+class ProductDAOImpl @Inject() (@NamedDatabase("default") db: Database) extends ProductDAO {
   val table = "products"
 
   override def getProductImage(id: Long): String = {

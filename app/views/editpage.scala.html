@@ -1,4 +1,4 @@
-@(id: Long, userDAO: UserDAO)
+@(id: Long, userDAO: UserDAO, role: String)
 
 @main("Edit profile page", content, header, footer)
 
@@ -14,6 +14,18 @@
                 <label for="email">Email</label>
                 <input class="form-control" type="text" id="email" name="email" data-bind="value: email">
             </div>
+            @if(role == ""){
+                <div class="form-group">
+                    <label class="control-label">User role</label>
+                    <div class="selectContainer">
+                        <select class="form-control" data-bind="value: role" name="role">
+                            <option value="">Choose a role</option>
+                            <option value="customer">Customer</option>
+                            <option value="seller">Seller</option>
+                        </select>
+                    </div>
+                </div>
+            }
             <div>
                 <label for="file" class="btn-link">Change profile picture</label>
                 <input id="file" name="file" class="form-control" type="file" style="display: none">

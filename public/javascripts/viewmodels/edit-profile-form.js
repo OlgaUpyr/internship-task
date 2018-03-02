@@ -6,6 +6,7 @@ user.edit_page_form = {
         self.id = id;
         self.name = ko.observable("");
         self.email = ko.observable("");
+        self.role = "";
         self.current_password = ko.observable("");
         self.new_password = ko.observable("");
         self.confirm_password = ko.observable("");
@@ -13,6 +14,7 @@ user.edit_page_form = {
         $.getJSON("/api/profile", function (data) {
             self.name(data.name);
             self.email(data.email);
+            self.role(data.role);
         });
 
         self.submitForm = function (form) {
@@ -20,6 +22,8 @@ user.edit_page_form = {
             $.ajax({
                 url: "/api/profile/edit/" + id,
                 type: 'POST',
+                headers: { 'IsAjax': 'true' },
+                dataType: 'json',
                 processData: false,
                 contentType: false,
                 data: formData,

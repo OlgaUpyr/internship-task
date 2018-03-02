@@ -28,7 +28,7 @@ class ProductController @Inject()(cc: ControllerComponents, productDAO: ProductD
 
   def productsListForUserPage() = Action { implicit request =>
     request.session.get("user").map { user =>
-      Ok(views.html.productslistforuser(productDAO, productDAO.getProductsByUser(user.toLong), userDAO.findById(user.toLong).get.role.get))
+      Ok(views.html.productslistforuser(productDAO, productDAO.getProductsByUser(user.toLong), userDAO.findById(user.toLong).get.role))
     }.getOrElse{
       Redirect(routes.HomeController.home())
     }

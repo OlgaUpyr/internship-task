@@ -4,7 +4,7 @@ import play.api.data.Form
 import play.api.data.Forms.{mapping, nonEmptyText, text}
 import play.api.libs.json._
 
-case class FacebookAuth(userId: String, name: String, email: String, avatarUrl: String, role: String)
+case class FacebookAuth(userId: String, name: String, email: String, avatarUrl: String)
 
 object FacebookAuth {
 
@@ -14,14 +14,13 @@ object FacebookAuth {
         "userId" -> JsString(facebook.userId),
         "name" -> JsString(facebook.name),
         "email" -> JsString(facebook.email),
-        "avatarUrl" -> JsString(facebook.avatarUrl),
-        "role" -> JsString(facebook.role)
+        "avatarUrl" -> JsString(facebook.avatarUrl)
       )
       JsObject(facebookSeq)
     }
 
     def reads(json: JsValue): JsResult[FacebookAuth] = {
-      JsSuccess(FacebookAuth("", "", "", "", ""))
+      JsSuccess(FacebookAuth("", "", "", ""))
     }
   }
 }
@@ -32,8 +31,7 @@ object FacebookAuthForm {
       "userId" -> nonEmptyText,
       "name" -> nonEmptyText,
       "email" -> nonEmptyText,
-      "avatarUrl" -> nonEmptyText,
-      "role" -> nonEmptyText
+      "avatarUrl" -> nonEmptyText
     )(FacebookAuth.apply)(FacebookAuth.unapply)
   )
 }

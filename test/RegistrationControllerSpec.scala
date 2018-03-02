@@ -43,9 +43,9 @@ class RegistrationControllerSpec extends PlaySpec
       when(user.email).thenReturn("olga@gmail.com")
       when(passwordUtils.encryptPassword("qazseszaq", salt)).thenReturn(hashPassword)
       when(user.salt).thenReturn(Some(salt))
-      when(user.role).thenReturn(Some("seller"))
+      when(user.role).thenReturn("seller")
       when(userDAO.create
-      (user.name, user.email, hashPassword, salt, user.role.get)).thenReturn(Some(490L))
+      (user.name, user.email, hashPassword, salt, user.role)).thenReturn(Some(490L))
       when(userDAO.findById(490L)).thenReturn(Some(user))
 
       val files = Seq[FilePart[TemporaryFile]](FilePart("file", "test.png", Some("image/png"),
@@ -74,8 +74,8 @@ class RegistrationControllerSpec extends PlaySpec
       when(user.email).thenReturn("olga@gmail.com")
       when(passwordUtils.encryptPassword("qazseszaq", salt)).thenReturn(hashPassword)
       when(user.salt).thenReturn(Some(salt))
-      when(user.role).thenReturn(Some("customer"))
-      when(userDAO.create(user.name, user.email, hashPassword, salt, user.role.get)).thenReturn(Some(490L))
+      when(user.role).thenReturn("customer")
+      when(userDAO.create(user.name, user.email, hashPassword, salt, user.role)).thenReturn(Some(490L))
       when(userDAO.findById(490L)).thenReturn(Some(user))
 
       val data = Map("name" -> Seq("Olga Upyr"),

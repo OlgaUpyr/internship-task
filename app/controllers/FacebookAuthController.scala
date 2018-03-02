@@ -22,7 +22,7 @@ class FacebookAuthController @Inject()(cc: ControllerComponents, userDAO: UserDA
           case None =>
             userDAO.findByFBId(fbData.userId) match {
               case None =>
-                val newUser = userDAO.createFBUser(fbData.userId, fbData.name, fbData.role).get
+                val newUser = userDAO.createFBUser(fbData.userId, fbData.name).get
                 if (fbData.email != "none") {
                   userDAO.setEmail(newUser, fbData.email)
                 }
@@ -38,18 +38,10 @@ class FacebookAuthController @Inject()(cc: ControllerComponents, userDAO: UserDA
                 }
                 Ok.withSession("user" -> newUser.toString)
               case Some(user) =>
-                if(fbData.role == user.role.get) {
-                  Ok.withSession("user" -> user.id.get.toString)
-                }
-                else
-                  BadRequest(LoginForm.loginForm.withError("role", "Wrong user role.").errorsAsJson)
+                Ok.withSession("user" -> user.id.get.toString)
             }
           case Some(user) =>
-            if(fbData.role == user.role.get){
-              Ok.withSession("user" -> user.id.get.toString)
-            }
-            else
-              BadRequest(LoginForm.loginForm.withError("role", "Wrong user role.").errorsAsJson)
+            Ok.withSession("user" -> user.id.get.toString)
         }
       }
     )

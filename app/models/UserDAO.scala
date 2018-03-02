@@ -15,7 +15,7 @@ trait UserDAO {
   def findByControlKey(controlKey: String, currentTime: DateTime): Option[User]
   def findByFBId(fbId: String): Option[User]
   def create(name: String, email: String, password: String, salt: String, role: String): Option[Long]
-  def createFBUser(fbId: String, name: String, role: String): Option[Long]
+  def createFBUser(fbId: String, name: String): Option[Long]
   def getAllUsers: Seq[User]
   def editProfileWithPassword(id: Long, name: String, email: String, password: String): Boolean
   def editProfile(id: Long, name: String, email: String): Boolean
@@ -25,9 +25,10 @@ trait UserDAO {
   def isEmailExist(currentEmail: String, newEmail: String): Boolean
   def changeAvatarUrl(id: Long, avatarUrl: String): Boolean
   def checkRole(id: Long): String
+  def setRole(id: Long, role: String): Boolean
 }
 
-class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends UserDAO {
+class UserDAOImpl @Inject() (@NamedDatabase("default") db: Database) extends UserDAO {
   val table = "users"
 
   override def getUserAvatar(id: Long): String = {
@@ -67,10 +68,10 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     }
   }
 
-  override def createFBUser(fbId: String, name: String, role: String): Option[Long] = {
+  override def createFBUser(fbId: String, name: String): Option[Long] = {
     db.withConnection { implicit connection =>
-      val query = s"INSERT INTO $table(fbId, name, role) VALUES" +
-        s"('$fbId', '$name', '$role')"
+      val query = s"INSERT INTO $table(fbId, name) VALUES" +
+        s"('$fbId', '$name')"
       SQL(query).executeInsert()
     }
   }
@@ -140,7 +141,14 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
   override def checkRole(id: Long): String = {
     db.withConnection { implicit connection =>
       val query = s"SELECT * FROM $table WHERE id=$id"
-      SQL(query).as(UserParser.single).role.get
+      SQL(query).as(UserParser.single).role
+    }
+  }
+
+  override def setRole(id: Long, role: String): Boolean = {
+    db.withConnection { implicit connection =>
+      val query = s"UPDATE $table SET role='$role' WHERE id=$id"
+      SQL(query).execute()
     }
   }
 
@@ -159,5 +167,5 @@ class UserDAOImpl @Inject() (@NamedDatabase("postgres") db: Database) extends Us
     role <- get[Option[String]]("role")
   } yield User(id, fbId, name.getOrElse(""), email.getOrElse(""), current_password,
     new_password.getOrElse(""), confirm_password.getOrElse(""), salt, controlKey,
-    expirationTime, avatarUrl, role)
+    expirationTime, avatarUrl, role.getOrElse(""))
 }

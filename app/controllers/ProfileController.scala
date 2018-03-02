@@ -21,7 +21,7 @@ class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, pa
   extends AbstractController(cc) with play.api.i18n.I18nSupport {
   def editProfile() = Action { implicit request =>
     request.session.get("user").map { user =>
-      Ok(views.html.editpage(user.toLong, userDAO))
+      Ok(views.html.editpage(user.toLong, userDAO, userDAO.checkRole(user.toLong)))
     }.getOrElse {
       Redirect(routes.LoginController.loginPage())
     }
@@ -52,6 +52,7 @@ class ProfileController @Inject()(cc: ControllerComponents, userDAO: UserDAO, pa
             "The email address you have entered is already registered.").errorsAsJson)
         }
         else {
+          userDAO.setRole(id, userData.role)
           if(userData.currentPassword.get == "" && userData.newPassword == "" && userData.confirmPassword == ""){
             userDAO.editProfile(id, userData.name, userData.email)
             Ok(Json.toJson(userData))

@@ -38,7 +38,7 @@ class RegistrationController @Inject()(cc: ControllerComponents, userDAO: UserDA
           case None =>
             val salt = passwordUtils.generateRandomString()
             val id = userDAO.create(userData.name, userData.email,
-              passwordUtils.encryptPassword(userData.newPassword, salt), salt, userData.role.get)
+              passwordUtils.encryptPassword(userData.newPassword, salt), salt, userData.role)
             request.body.file("file").map {
               case FilePart(key, filename, contentType, file) =>
                 if(file.length() > 0 && S3FileDetails.isImage(contentType.get)) {

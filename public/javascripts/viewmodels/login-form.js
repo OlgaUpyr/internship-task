@@ -5,7 +5,6 @@ user.login_form = {
         var self = this;
         self.email = ko.observable("");
         self.password = ko.observable("");
-        self.role = ko.observable("");
 
         self.submitForm = function (form) {
             $.ajax({
@@ -14,8 +13,7 @@ user.login_form = {
                 contentType: 'application/json; charset=utf-8',
                 data: JSON.stringify({
                     email: self.email(),
-                    password: self.password(),
-                    role: self.role()
+                    password: self.password()
                 }),
                 error: function (jqXHR) {
                     user.errorUtils.setErrorsToForm($(form), JSON.parse(jqXHR.responseText));

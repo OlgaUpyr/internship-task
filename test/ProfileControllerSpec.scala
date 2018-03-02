@@ -41,6 +41,8 @@ class ProfileControllerSpec extends PlaySpec
 
     "successful user profile update (all fields are changed)" in {
       when(userDAO.findById(490L)).thenReturn(Some(user))
+      when(user.role).thenReturn("customer")
+      when(userDAO.setRole(490L, user.role)).thenReturn(true)
       when(user.currentPassword).thenReturn(Some("eszaqazse"))
       when(user.salt).thenReturn(Some(salt))
       when(user.newPassword).thenReturn("qazseszaq")

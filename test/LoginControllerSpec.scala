@@ -37,14 +37,11 @@ class LoginControllerSpec extends PlaySpec
       when(user.newPassword).thenReturn(new PasswordUtils().encryptPassword("qazseszaq", salt))
       when(user.salt).thenReturn(Some(salt))
       when(user.id).thenReturn(Some(490L))
-      when(user.role).thenReturn(Some("customer"))
-      when(userDAO.checkRole(user.id.get)).thenReturn("customer")
       when(passwordUtils.passwordsMatch("qazseszaq", user.salt.get, user.newPassword)).thenReturn(true)
 
       val Some(result) = route(app, FakeRequest(POST, routes.LoginController.login().url)
         .withFormUrlEncodedBody("email" -> "olga@gmail.com",
-          "password" -> "qazseszaq",
-          "role" -> "customer"))
+          "password" -> "qazseszaq"))
       status(result) mustBe OK
 
       verify(userDAO, times(1)).findByEmail(emailCaptor.capture)
@@ -56,13 +53,13 @@ class LoginControllerSpec extends PlaySpec
     }
     "failed login because of email missing" in {
       val Some(result) = route(app, FakeRequest(POST, routes.LoginController.login().url)
-        .withFormUrlEncodedBody("password" -> "qazseszaq", "role" -> "customer"))
+        .withFormUrlEncodedBody("password" -> "qazseszaq"))
       status(result) mustBe BAD_REQUEST
       contentAsString(result) mustBe ("{\"email\":[\"This field is required\"]}")
     }
     "failed login because of password missing" in {
       val Some(result) = route(app, FakeRequest(POST, routes.LoginController.login().url)
-        .withFormUrlEncodedBody("email" -> "olga@gmail.com", "role" -> "customer"))
+        .withFormUrlEncodedBody("email" -> "olga@gmail.com"))
       status(result) mustBe BAD_REQUEST
       contentAsString(result) mustBe ("{\"password\":[\"This field is required\"]}")
     }
@@ -70,7 +67,7 @@ class LoginControllerSpec extends PlaySpec
       when(userDAO.findByEmail("email@gmail.com")).thenReturn(None)
 
       val Some(result) = route(app, FakeRequest(POST, routes.LoginController.login().url)
-        .withFormUrlEncodedBody("email" -> "email@gmail.com", "password" -> "qazseszaq", "role" -> "customer"))
+        .withFormUrlEncodedBody("email" -> "email@gmail.com", "password" -> "qazseszaq"))
       status(result) mustBe BAD_REQUEST
       contentAsString(result) mustBe ("{\"email\":[\"Wrong email address.\"]}")
     }
@@ -78,12 +75,10 @@ class LoginControllerSpec extends PlaySpec
       when(userDAO.findByEmail("olga@gmail.com")).thenReturn(Some(user))
       when(user.newPassword).thenReturn(new PasswordUtils().encryptPassword("qazseszaq", salt))
       when(user.salt).thenReturn(Some(salt))
-      when(userDAO.checkRole(490L)).thenReturn("customer")
-      when(user.role).thenReturn(Some("customer"))
       when(passwordUtils.passwordsMatch("1234567890", user.salt.get, user.newPassword)).thenReturn(false)
 
       val Some(result) = route(app, FakeRequest(POST, routes.LoginController.login().url)
-        .withFormUrlEncodedBody("email" -> "olga@gmail.com", "password" -> "1234567890", "role" -> "customer"))
+        .withFormUrlEncodedBody("email" -> "olga@gmail.com", "password" -> "1234567890"))
       status(result) mustBe BAD_REQUEST
       contentAsString(result) mustBe ("{\"password\":[\"Password is invalid.\"]}")
     }
